@@ -96,8 +96,10 @@ public class UserServiceTest {
 
     @Test
     public void testSearchUsersByTags(){
-        List<String> tagNameList = Arrays.asList("kkk");
+        List<String> tagNameList = Arrays.asList("cpp");
         List<User> userList = userService.searchUsersByTags(tagNameList);
-        Assert.assertNotNull(userList);
+        for (User user : userList) {
+            System.out.println("查到了用户！"+user);
+        }
     }
 }

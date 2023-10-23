@@ -19,7 +19,9 @@ import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -180,37 +182,38 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      */
     @Override
     public List<User> searchUsersByTags(List<String> tagNameList){
-        if(CollectionUtils.isEmpty(tagNameList)){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        //拼接and查询
-        //like '%Java%' and like '%Python%'
-        for (String tagName : tagNameList) {
-           queryWrapper = queryWrapper.like("tags",tagName);
-        }
-        List<User> userList = userMapper.selectList(queryWrapper);
+//        if(CollectionUtils.isEmpty(tagNameList)){
+//            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+//        }
+//        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+//        //拼接and查询
+//        //like '%Java%' and like '%Python%'
+//        for (String tagName : tagNameList) {
+//           queryWrapper = queryWrapper.like("tags",tagName);
+//        }
+//        List<User> userList = userMapper.selectList(queryWrapper);
         //先查询所有用户
-//        List<User> userList = userMapper.selectList(null);
-//        Gson gson = new Gson();
-//        //在内存中判断是否包含要求的标签
-//        return userList.stream().filter((user -> {
-//            String tagStr = user.getTags();
-//            if(StringUtils.isBlank(tagStr)){
-//                return false;
-//            }
-//            //使用gson将tag json字符串反序列化为对象
-//            Set<String> tempTagNameSet = gson.fromJson(tagStr, new TypeToken<Set<String>>(){}.getType());
-//            //序列化
-//            //String json = gson.toJson(tempTagNameList);
-//            for (String tagName : tagNameList) {
-//                if(!tempTagNameSet.contains(tagName)){
-//                    return false;
-//                }
-//            }
-//            return true;
-//        })).map(this::getSafetyUser).collect(Collectors.toList());
-        return userList.stream().map(this::getSafetyUser).collect(Collectors.toList());
+        List<User> userList = userMapper.selectList(null);
+        Gson gson = new Gson();
+        //在内存中判断是否包含要求的标签
+        return userList.stream().filter((user -> {
+            String tagStr = user.getTags();
+            if(StringUtils.isBlank(tagStr)){
+                return false;
+            }
+            //使用gson将tag json字符串反序列化为对象
+            Set<String> tempTagNameSet = gson.fromJson(tagStr, new TypeToken<Set<String>>(){}.getType());
+            tempTagNameSet = Optional.ofNullable(tempTagNameSet).orElse(new HashSet<>());
+            //序列化
+            //String json = gson.toJson(tempTagNameList);
+            for (String tagName : tagNameList) {
+                if(!tempTagNameSet.contains(tagName)){
+                    return false;
+                }
+            }
+            return true;
+        })).map(this::getSafetyUser).collect(Collectors.toList());
+//        return userList.stream().map(this::getSafetyUser).collect(Collectors.toList());
 
     }
 
