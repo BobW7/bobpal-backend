@@ -175,27 +175,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
 
     /**
-     * 根据标签搜索用户
+     * 根据标签搜索用户 内存过滤版
      *
      * @param tagNameList 用户要拥有的标签
      * @return
      */
     @Override
     public List<User> searchUsersByTags(List<String> tagNameList){
-//        if(CollectionUtils.isEmpty(tagNameList)){
-//            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-//        }
-//        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-//        //拼接and查询
-//        //like '%Java%' and like '%Python%'
-//        for (String tagName : tagNameList) {
-//           queryWrapper = queryWrapper.like("tags",tagName);
-//        }
-//        List<User> userList = userMapper.selectList(queryWrapper);
-        //先查询所有用户
+        //1.先查询所有用户
         List<User> userList = userMapper.selectList(null);
         Gson gson = new Gson();
-        //在内存中判断是否包含要求的标签
+        //2.在内存中判断是否包含要求的标签
         return userList.stream().filter((user -> {
             String tagStr = user.getTags();
             if(StringUtils.isBlank(tagStr)){
@@ -203,6 +193,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             }
             //使用gson将tag json字符串反序列化为对象
             Set<String> tempTagNameSet = gson.fromJson(tagStr, new TypeToken<Set<String>>(){}.getType());
+            //判空
             tempTagNameSet = Optional.ofNullable(tempTagNameSet).orElse(new HashSet<>());
             //序列化
             //String json = gson.toJson(tempTagNameList);
@@ -213,9 +204,30 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             }
             return true;
         })).map(this::getSafetyUser).collect(Collectors.toList());
-//        return userList.stream().map(this::getSafetyUser).collect(Collectors.toList());
-
     }
+
+
+    /**
+     * 根据标签搜索用户 SQL查询版
+     * @param tagNameList 用户要拥有的标签
+     * @return
+     */
+    @Deprecated
+    private List<User> searchUsersByTagsBySQL(List<String> tagNameList){
+        if(CollectionUtils.isEmpty(tagNameList)){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        //拼接and查询
+        //like '%Java%' and like '%Python%'
+        for (String tagName : tagNameList) {
+           queryWrapper = queryWrapper.like("tags",tagName);
+        }
+        List<User> userList = userMapper.selectList(queryWrapper);
+
+        return userList.stream().map(this::getSafetyUser).collect(Collectors.toList());
+    }
+
 
 }
 
