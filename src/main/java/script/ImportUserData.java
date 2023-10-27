@@ -24,6 +24,12 @@ public class ImportUserData {
                 userInfoList.stream()
                         .filter(item -> StringUtils.isNotEmpty(item.getUsername()))
                         .collect(Collectors.groupingBy(TableMyUserInfo::getUsername));
+        for (Map.Entry<String, List<TableMyUserInfo>> stringListEntry : listMap.entrySet()) {
+            if(stringListEntry.getValue().size() > 1){
+                System.out.println("userName = "+stringListEntry.getKey());
+                System.out.println(1);
+            }
+        }
         System.out.println("无重复的昵称数 = "+listMap.keySet().size());
 
     }
