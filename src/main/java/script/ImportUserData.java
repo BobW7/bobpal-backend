@@ -1,9 +1,11 @@
 package script;
 
 import com.alibaba.excel.EasyExcel;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -19,7 +21,9 @@ public class ImportUserData {
         //过滤
         //首先将昵称相同的用户的信息放到同一组下
         Map<String, List<TableMyUserInfo>> listMap =
-                userInfoList.stream().collect(Collectors.groupingBy(TableMyUserInfo::getUsername));
+                userInfoList.stream()
+                        .filter(item -> StringUtils.isNotEmpty(item.getUsername()))
+                        .collect(Collectors.groupingBy(TableMyUserInfo::getUsername));
         System.out.println("无重复的昵称数 = "+listMap.keySet().size());
 
     }
