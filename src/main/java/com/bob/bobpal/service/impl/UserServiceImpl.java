@@ -9,7 +9,6 @@ import com.bob.bobpal.exception.BusinessException;
 import com.bob.bobpal.model.domain.User;
 import com.bob.bobpal.mapper.UserMapper;
 import com.google.gson.Gson;
-import com.google.gson.TypeAdapter;
 import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -26,6 +25,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static com.bob.bobpal.contant.UserConstant.USER_LOGIN_STATE;
 
 /**
  * 用户服务实现类
@@ -131,7 +132,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         // 3. 用户脱敏
         User safetyUser = getSafetyUser(user);
         // 4. 记录用户的登录态
-        request.getSession().setAttribute(UserConstant.USER_LOGIN_STATE, safetyUser);
+        request.getSession().setAttribute(USER_LOGIN_STATE, safetyUser);
         return safetyUser;
     }
 
@@ -169,7 +170,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Override
     public int userLogout(HttpServletRequest request) {
         // 移除登录态
-        request.getSession().removeAttribute(UserConstant.USER_LOGIN_STATE);
+        request.getSession().removeAttribute(USER_LOGIN_STATE);
         return 1;
     }
 
@@ -206,6 +207,49 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         })).map(this::getSafetyUser).collect(Collectors.toList());
     }
 
+    /**
+     * 更新用户
+     * @param user 接收前端传来的更新过后的用户信息
+     * @param currentUser 旧的用户信息
+     * @return
+     */
+    @Override
+    public int updateUser(User user,User currentUser) {
+        long userId = user.getId();
+        if(userId <= 0){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        //如果是管理员，允许更新其它的任意用户
+        //如果是自己，只允许更新自己的
+        if(!isAdmin(currentUser) && userId != currentUser.getId()){
+            throw new BusinessException(ErrorCode.NO_AUTH);
+        }
+        User oldUser = userMapper.selectById(userId);
+        if(oldUser == null){
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
+        return userMapper.updateById(user);
+    }
+
+
+    /**
+     * 获取当前用户信息
+     * @param request
+     * @return
+     */
+    @Override
+    public User getLoginUser(HttpServletRequest request) {
+        if(request == null){
+            return null;
+        }
+        //当前用户从请求头中的cookie中去取
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+        if(userObj == null){
+            throw new BusinessException(ErrorCode.NO_AUTH);
+        }
+        return (User) userObj;
+    }
+
 
     /**
      * 根据标签搜索用户 SQL查询版
@@ -228,7 +272,31 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return userList.stream().map(this::getSafetyUser).collect(Collectors.toList());
     }
 
+    /**
+     * 是否为管理员
+     *
+     * @param request
+     * @return
+     */
+    @Override
+    public boolean isAdmin(HttpServletRequest request) {
+        // 仅管理员可查询
+        Object userObj = request.getSession().getAttribute(UserConstant.USER_LOGIN_STATE);
+        User user = (User) userObj;
+        return user != null && user.getUserRole() == UserConstant.ADMIN_ROLE;
+    }
 
+    /**
+     * 是否为管理员
+     *
+     * @param currentUser
+     * @return
+     */
+    @Override
+    public boolean isAdmin(User currentUser) {
+        // 仅管理员可查询
+        return currentUser != null && currentUser.getUserRole() == UserConstant.ADMIN_ROLE;
+    }
 }
 
 
