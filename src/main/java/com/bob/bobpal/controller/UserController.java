@@ -70,7 +70,6 @@ public class UserController {
         int result = userService.userLogout(request);
         return ResultUtils.success(result);
     }
-
     @GetMapping("/current")
     public BaseResponse<User> getCurrentUser(HttpServletRequest request) {
         Object userObj = request.getSession().getAttribute(UserConstant.USER_LOGIN_STATE);
