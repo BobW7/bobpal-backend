@@ -2,6 +2,7 @@ package com.bob.bobpal.service;
 
 import com.bob.bobpal.model.domain.User;
 import com.baomidou.mybatisplus.extension.service.IService;
+import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.List;
  *
  * @author bob
  */
+@Service
 public interface UserService extends IService<User> {
 
     /**
