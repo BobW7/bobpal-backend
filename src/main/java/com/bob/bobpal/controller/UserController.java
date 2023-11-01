@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.xml.transform.Result;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -136,7 +137,13 @@ public class UserController {
         return ResultUtils.success(result);
     }
 
-
+    @GetMapping("/recommend")
+    public BaseResponse<List<User>> recommendUsers(HttpServletRequest request){
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        List<User> userList = userService.list(queryWrapper);
+        List<User> list = userList.stream().map(user -> userService.getSafetyUser(user)).collect(Collectors.toList());
+        return ResultUtils.success(list);
+    }
 
 
 }
