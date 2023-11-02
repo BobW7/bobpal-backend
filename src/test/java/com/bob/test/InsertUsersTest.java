@@ -86,7 +86,6 @@ public class InsertUsersTest {
 
         }
         CompletableFuture.allOf(futureList.toArray(new CompletableFuture[]{})).join();
-
         stopWatch.stop();
         //性能优化到了5s
         System.out.println(stopWatch.getTotalTimeMillis());
