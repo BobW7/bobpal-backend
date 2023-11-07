@@ -1,4 +1,4 @@
-package com.bob.bobpal.model.domain.request;
+package com.bob.bobpal.model.request;
 
 import lombok.Data;
 

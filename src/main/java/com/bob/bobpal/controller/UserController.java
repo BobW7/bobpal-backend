@@ -2,15 +2,14 @@ package com.bob.bobpal.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.bob.bobpal.contant.UserConstant;
-import com.bob.bobpal.model.domain.request.UserLoginRequest;
+import com.bob.bobpal.model.request.UserLoginRequest;
 import com.bob.bobpal.service.UserService;
 import com.bob.bobpal.common.BaseResponse;
 import com.bob.bobpal.common.ErrorCode;
 import com.bob.bobpal.common.ResultUtils;
 import com.bob.bobpal.exception.BusinessException;
 import com.bob.bobpal.model.domain.User;
-import com.bob.bobpal.model.domain.request.UserRegisterRequest;
+import com.bob.bobpal.model.request.UserRegisterRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -20,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import javax.xml.transform.Result;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
