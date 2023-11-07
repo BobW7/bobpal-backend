@@ -8,9 +8,10 @@ import java.util.Date;
 
 /**
  * 标签
+ *
  * @TableName tag
  */
-@TableName(value ="tag")
+@TableName(value = "tag")
 @Data
 public class Tag implements Serializable {
     /**
@@ -45,7 +46,7 @@ public class Tag implements Serializable {
     private Date createTime;
 
     /**
-     * 
+     *
      */
     private Date updateTime;
 

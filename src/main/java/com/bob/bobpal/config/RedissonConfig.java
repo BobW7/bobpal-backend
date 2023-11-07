@@ -17,11 +17,12 @@ import org.springframework.context.annotation.Configuration;
 public class RedissonConfig {
     private String host;
     private String port;
+
     @Bean
-    public RedissonClient redissonClient(){
+    public RedissonClient redissonClient() {
         // 1. Create config object
         Config config = new Config();
-        String redisAddress =String.format("redis://%s:%s",host,port);
+        String redisAddress = String.format("redis://%s:%s", host, port);
         config.useSingleServer().setAddress(redisAddress).setDatabase(3);
 
         // 2. Create Redisson instance

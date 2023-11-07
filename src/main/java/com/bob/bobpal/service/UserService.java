@@ -1,7 +1,7 @@
 package com.bob.bobpal.service;
 
-import com.bob.bobpal.model.domain.User;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.bob.bobpal.model.domain.User;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
@@ -21,7 +21,7 @@ public interface UserService extends IService<User> {
      * @param userAccount   用户账户
      * @param userPassword  用户密码
      * @param checkPassword 校验密码
-     * @param planetCode 星球编号
+     * @param planetCode    星球编号
      * @return 新用户 id
      */
     long userRegister(String userAccount, String userPassword, String checkPassword, String planetCode);
@@ -62,19 +62,22 @@ public interface UserService extends IService<User> {
 
     /**
      * 更新用户信息
+     *
      * @param user
      * @return
      */
-    int updateUser(User user,User currentUser);
+    int updateUser(User user, User currentUser);
 
     /**
      * 获取当前用户
+     *
      * @return
      */
     User getLoginUser(HttpServletRequest request);
 
     /**
      * 是否为管理员
+     *
      * @param request
      * @return
      */
@@ -82,6 +85,7 @@ public interface UserService extends IService<User> {
 
     /**
      * 是否为管理员
+     *
      * @param currentUser
      * @return
      */

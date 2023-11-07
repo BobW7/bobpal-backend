@@ -34,7 +34,7 @@ import static com.bob.bobpal.contant.UserConstant.USER_LOGIN_STATE;
  */
 @RestController
 @RequestMapping("/user")
-@CrossOrigin(origins = {"http://127.0.0.1:5173"},allowCredentials = "true")
+@CrossOrigin(origins = {"http://127.0.0.1:5173"}, allowCredentials = "true")
 @Slf4j
 public class UserController {
 
@@ -42,7 +42,7 @@ public class UserController {
     private UserService userService;
 
     @Resource
-    private RedisTemplate<String,Object> redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
 
     @PostMapping("/register")
     public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
@@ -83,6 +83,7 @@ public class UserController {
         int result = userService.userLogout(request);
         return ResultUtils.success(result);
     }
+
     @GetMapping("/current")
     public BaseResponse<User> getCurrentUser(HttpServletRequest request) {
         Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
@@ -100,7 +101,7 @@ public class UserController {
     @GetMapping("/search")
     public BaseResponse<List<User>> searchUsers(String username, HttpServletRequest request) {
         if (!userService.isAdmin(request)) {
-           throw new BusinessException(ErrorCode.PARAMS_ERROR);
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         if (StringUtils.isNotBlank(username)) {
@@ -112,7 +113,7 @@ public class UserController {
     }
 
     @GetMapping("/search/tags")
-    public BaseResponse<List<User>> searchUsersByTags(@RequestParam(required = false) List<String> tagNameList){
+    public BaseResponse<List<User>> searchUsersByTags(@RequestParam(required = false) List<String> tagNameList) {
         if (CollectionUtils.isEmpty(tagNameList)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -134,37 +135,37 @@ public class UserController {
     }
 
     @PostMapping("/update")
-    public BaseResponse<Integer> updateUser(@RequestBody User user,HttpServletRequest request){
+    public BaseResponse<Integer> updateUser(@RequestBody User user, HttpServletRequest request) {
         //校验参数是否为空
-        if(user == null){
+        if (user == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         //鉴权
         User currentUser = userService.getLoginUser(request);
         //实际触发更新
-        int result = userService.updateUser(user,currentUser);
+        int result = userService.updateUser(user, currentUser);
         return ResultUtils.success(result);
     }
 
     @GetMapping("/recommend")
-    public BaseResponse<Page<User>> recommendUsers(long pageSize,long pageNum,HttpServletRequest request){
+    public BaseResponse<Page<User>> recommendUsers(long pageSize, long pageNum, HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
-        String redisKey = String.format("bobpal:user:recommend:%s",loginUser.getId());
+        String redisKey = String.format("bobpal:user:recommend:%s", loginUser.getId());
         ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
         //如果有缓存，直接走缓存
-        Page<User> userPage =(Page<User>) redisTemplate.opsForValue().get(redisKey);
-        if(userPage != null){
+        Page<User> userPage = (Page<User>) redisTemplate.opsForValue().get(redisKey);
+        if (userPage != null) {
             return ResultUtils.success(userPage);
         }
 
         //无缓存，走数据库
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        userPage = userService.page(new Page<>(pageNum,pageSize), queryWrapper);
+        userPage = userService.page(new Page<>(pageNum, pageSize), queryWrapper);
         //写缓存
         try {
-            valueOperations.set(redisKey,userPage,30000, TimeUnit.MILLISECONDS);
+            valueOperations.set(redisKey, userPage, 30000, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
-            log.error("redis set key error",e);
+            log.error("redis set key error", e);
         }
         return ResultUtils.success(userPage);
     }

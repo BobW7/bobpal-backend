@@ -2,12 +2,12 @@ package com.bob.bobpal.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.bob.bobpal.contant.UserConstant;
-import com.bob.bobpal.service.UserService;
 import com.bob.bobpal.common.ErrorCode;
+import com.bob.bobpal.contant.UserConstant;
 import com.bob.bobpal.exception.BusinessException;
-import com.bob.bobpal.model.domain.User;
 import com.bob.bobpal.mapper.UserMapper;
+import com.bob.bobpal.model.domain.User;
+import com.bob.bobpal.service.UserService;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
@@ -145,7 +145,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      * @return
      */
     @Override
-    public User getSafetyUser(User originUser)  {
+    public User getSafetyUser(User originUser) {
         if (originUser == null) {
             return null;
         }
@@ -167,6 +167,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     /**
      * 用户注销
+     *
      * @param request
      */
     @Override
@@ -184,24 +185,25 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      * @return
      */
     @Override
-    public List<User> searchUsersByTags(List<String> tagNameList){
+    public List<User> searchUsersByTags(List<String> tagNameList) {
         //1.先查询所有用户
         List<User> userList = userMapper.selectList(null);
         Gson gson = new Gson();
         //2.在内存中判断是否包含要求的标签
         return userList.stream().filter((user -> {
             String tagStr = user.getTags();
-            if(StringUtils.isBlank(tagStr)){
+            if (StringUtils.isBlank(tagStr)) {
                 return false;
             }
             //使用gson将tag json字符串反序列化为对象
-            Set<String> tempTagNameSet = gson.fromJson(tagStr, new TypeToken<Set<String>>(){}.getType());
+            Set<String> tempTagNameSet = gson.fromJson(tagStr, new TypeToken<Set<String>>() {
+            }.getType());
             //判空
             tempTagNameSet = Optional.ofNullable(tempTagNameSet).orElse(new HashSet<>());
             //序列化
             //String json = gson.toJson(tempTagNameList);
             for (String tagName : tagNameList) {
-                if(!tempTagNameSet.contains(tagName)){
+                if (!tempTagNameSet.contains(tagName)) {
                     return false;
                 }
             }
@@ -211,23 +213,24 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     /**
      * 更新用户
-     * @param user 接收前端传来的更新过后的用户信息
+     *
+     * @param user        接收前端传来的更新过后的用户信息
      * @param currentUser 旧的用户信息
      * @return
      */
     @Override
-    public int updateUser(User user,User currentUser) {
+    public int updateUser(User user, User currentUser) {
         long userId = user.getId();
-        if(userId <= 0){
+        if (userId <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         //如果是管理员，允许更新其它的任意用户
         //如果是自己，只允许更新自己的
-        if(!isAdmin(currentUser) && userId != currentUser.getId()){
+        if (!isAdmin(currentUser) && userId != currentUser.getId()) {
             throw new BusinessException(ErrorCode.NO_AUTH);
         }
         User oldUser = userMapper.selectById(userId);
-        if(oldUser == null){
+        if (oldUser == null) {
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
         return userMapper.updateById(user);
@@ -236,17 +239,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     /**
      * 获取当前用户信息
+     *
      * @param request
      * @return
      */
     @Override
     public User getLoginUser(HttpServletRequest request) {
-        if(request == null){
+        if (request == null) {
             return null;
         }
         //当前用户从请求头中的cookie中去取
         Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
-        if(userObj == null){
+        if (userObj == null) {
             throw new BusinessException(ErrorCode.NO_AUTH);
         }
         return (User) userObj;
@@ -255,19 +259,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     /**
      * 根据标签搜索用户 SQL查询版
+     *
      * @param tagNameList 用户要拥有的标签
      * @return
      */
     @Deprecated
-    private List<User> searchUsersByTagsBySQL(List<String> tagNameList){
-        if(CollectionUtils.isEmpty(tagNameList)){
+    private List<User> searchUsersByTagsBySQL(List<String> tagNameList) {
+        if (CollectionUtils.isEmpty(tagNameList)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         //拼接and查询
         //like '%Java%' and like '%Python%'
         for (String tagName : tagNameList) {
-           queryWrapper = queryWrapper.like("tags",tagName);
+            queryWrapper = queryWrapper.like("tags", tagName);
         }
         List<User> userList = userMapper.selectList(queryWrapper);
 

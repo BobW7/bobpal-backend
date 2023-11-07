@@ -17,7 +17,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2WebMvc;
 @Profile("dev")
 public class SwaggerConfig {
     @Bean(value = "defaultApi2")
-    public Docket defaultApi2(){
+    public Docket defaultApi2() {
         return new Docket(DocumentationType.SWAGGER_2)
                 .apiInfo(apiInfo())
                 .select()
@@ -29,14 +29,15 @@ public class SwaggerConfig {
 
     /**
      * api信息
+     *
      * @return
      */
-    private ApiInfo apiInfo(){
+    private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
                 .title("Bob用户中心")
                 .description("接口文档")
                 .termsOfServiceUrl("https://github.com/BobW7")
-                .contact(new Contact("bob","https://github.com/BobW7","1186717311@qq.com"))
+                .contact(new Contact("bob", "https://github.com/BobW7", "1186717311@qq.com"))
                 .version("1.0")
                 .build();
     }
