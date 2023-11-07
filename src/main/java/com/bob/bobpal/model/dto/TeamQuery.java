@@ -1,14 +1,17 @@
 package com.bob.bobpal.model.dto;
 
+import com.bob.bobpal.common.PageRequest;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.Date;
 
 /**
  * 队伍查询封装类
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
-public class TeamQuery {
+public class TeamQuery extends PageRequest {
     /**
      * id
      */

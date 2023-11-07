@@ -124,8 +124,9 @@ public class TeamController {
         } catch (Exception e) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR);
         }
+        Page<Team> page = new Page<>(teamQuery.getPageNum(),teamQuery.getPageSize());
         QueryWrapper<Team> queryWrapper = new QueryWrapper<>(team);
-        List<Team> teamList = teamService.list(queryWrapper);
-        return ResultUtils.success(null);
+        Page<Team> resultPage = teamService.page(page, queryWrapper);
+        return ResultUtils.success(resultPage);
     }
 }
