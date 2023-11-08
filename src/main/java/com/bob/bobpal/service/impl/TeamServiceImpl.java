@@ -76,7 +76,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         }
         //  f. 超时时间 > 当前时间
         Date expireTime = team.getExpireTime();
-        if (new Date().after(expireTime)) {
+            if (new Date().after(expireTime)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "超时时间 > 当前时间");
         }
         //  g. 校验用户最多创建 5 个队伍
@@ -102,7 +102,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         userTeam.setTeamId(teamId);
         userTeam.setJoinTime(new Date());
         boolean result1 = userTeamService.save(userTeam);
-        if (result1) {
+        if (!result1) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "创建队伍失败");
         }
         return teamId;
