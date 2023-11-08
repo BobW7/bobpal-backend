@@ -10,6 +10,7 @@ import com.bob.bobpal.model.domain.Team;
 import com.bob.bobpal.model.domain.User;
 import com.bob.bobpal.model.dto.TeamQuery;
 import com.bob.bobpal.model.request.TeamAddRequest;
+import com.bob.bobpal.model.vo.TeamUserVO;
 import com.bob.bobpal.service.TeamService;
 import com.bob.bobpal.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -85,20 +86,29 @@ public class TeamController {
         return ResultUtils.success(team);
     }
 
+//    @GetMapping("/list")
+//    public BaseResponse<List<Team>> listTeams(TeamQuery teamQuery) {
+//        if (teamQuery == null) {
+//            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+//        }
+//        //同步将teamQuery字段的值同步到一个team对象中去，因为queryWrapper只能接受实体类
+//        Team team = new Team();
+//        try {
+//            BeanUtils.copyProperties(team, teamQuery);
+//        } catch (Exception e) {
+//            throw new BusinessException(ErrorCode.SYSTEM_ERROR);
+//        }
+//        QueryWrapper<Team> queryWrapper = new QueryWrapper<>(team);
+//        List<Team> teamList = teamService.list(queryWrapper);
+//        return ResultUtils.success(teamList);
+//    }
+
     @GetMapping("/list")
-    public BaseResponse<List<Team>> listTeams(TeamQuery teamQuery) {
+    public BaseResponse<List<TeamUserVO>> listTeams(TeamQuery teamQuery) throws InvocationTargetException, IllegalAccessException {
         if (teamQuery == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        //同步将teamQuery字段的值同步到一个team对象中去，因为queryWrapper只能接受实体类
-        Team team = new Team();
-        try {
-            BeanUtils.copyProperties(team, teamQuery);
-        } catch (Exception e) {
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR);
-        }
-        QueryWrapper<Team> queryWrapper = new QueryWrapper<>(team);
-        List<Team> teamList = teamService.list(queryWrapper);
+        List<TeamUserVO> teamList = teamService.listTeams(teamQuery);
         return ResultUtils.success(teamList);
     }
 

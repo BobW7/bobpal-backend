@@ -8,15 +8,24 @@ import com.bob.bobpal.mapper.TeamMapper;
 import com.bob.bobpal.model.domain.Team;
 import com.bob.bobpal.model.domain.User;
 import com.bob.bobpal.model.domain.UserTeam;
+import com.bob.bobpal.model.dto.TeamQuery;
 import com.bob.bobpal.model.enums.TeamStatusEnum;
+import com.bob.bobpal.model.vo.TeamUserVO;
+import com.bob.bobpal.model.vo.UserVO;
 import com.bob.bobpal.service.TeamService;
+import com.bob.bobpal.service.UserService;
 import com.bob.bobpal.service.UserTeamService;
+import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -30,6 +39,8 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
 
     @Resource
     private UserTeamService userTeamService;
+    @Resource
+    private UserService userService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -76,7 +87,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
         }
         //  f. 超时时间 > 当前时间
         Date expireTime = team.getExpireTime();
-            if (new Date().after(expireTime)) {
+        if (new Date().after(expireTime)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "超时时间 > 当前时间");
         }
         //  g. 校验用户最多创建 5 个队伍
@@ -106,6 +117,76 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "创建队伍失败");
         }
         return teamId;
+    }
+
+    @Override
+    public List<TeamUserVO> listTeams(TeamQuery teamQuery) throws InvocationTargetException, IllegalAccessException {
+        QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
+        // 1. 组合查询条件
+        if (teamQuery != null) {
+            //从前端取出可能的查询条件
+            Long id = teamQuery.getId();
+            if (id != null && id > 0) {
+                queryWrapper.eq("id", id);
+            }
+            String name = teamQuery.getName();
+            if (StringUtils.isNotBlank(name)) {
+                queryWrapper.like("name", name);
+            }
+            String description = teamQuery.getDescription();
+            if (StringUtils.isNotBlank(description)) {
+                queryWrapper.like("description", description);
+            }
+            Integer maxNum = teamQuery.getMaxNum();
+            //查询最大人数相等的
+            if (maxNum != null && maxNum > 0) {
+                queryWrapper.eq("maxNum", maxNum);
+            }
+            Long userId = teamQuery.getUserId();
+            //根据创建人查询
+            if (userId != null && userId > 0) {
+                queryWrapper.eq("userId", userId);
+            }
+            Integer status = teamQuery.getStatus();
+            //根据状态查询
+            if (status != null && status > -1) {
+                queryWrapper.eq("status", status);
+            }
+        }
+
+        //同步将teamQuery字段的值同步到一个team对象中去，因为queryWrapper只能接受实体类
+        List<Team> teamList = this.list(queryWrapper);
+        if (CollectionUtils.isEmpty(teamList)) {
+            return new ArrayList<>();
+        }
+        // 关联查询用户信息
+        // 1. 自己写SQL
+        // 查询队伍和创建人的信息
+        // select * from team t left join user u on t.userId = u.id
+        // 查询队伍和已查询队伍成员的信息
+//        select *
+//                from team t
+//        left join user_team ut on t.id = ut.teamId
+//        left join user u on ut.userId = u.id;
+        // 2.关联查询创建人的信息
+        List<TeamUserVO> teamUserVOList = new ArrayList<>();
+        for (Team team : teamList) {
+            Long userId = team.getUserId();
+            if (userId == null) {
+                continue;
+            }
+            //关联查询
+            User user = userService.getById(userId);
+            //脱敏用户信息
+            UserVO userVO = new UserVO();
+            BeanUtils.copyProperties(userVO, user);
+
+            TeamUserVO teamUserVO = new TeamUserVO();
+            BeanUtils.copyProperties(teamQuery, team);
+            teamUserVO.setCreateUser(userVO);
+            teamUserVOList.add(teamUserVO);
+        }
+        return teamUserVOList;
     }
 }
 

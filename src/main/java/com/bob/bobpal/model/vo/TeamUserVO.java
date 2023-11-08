@@ -2,6 +2,7 @@ package com.bob.bobpal.model.vo;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -10,6 +11,7 @@ import java.util.List;
 /**
  * 队伍和用户信息封装类(脱敏)
  */
+@Data
 public class TeamUserVO implements Serializable {
     /**
      * id
@@ -59,8 +61,8 @@ public class TeamUserVO implements Serializable {
     private Date updateTime;
 
     /**
-     * 入队用户列表
+     * 创建人用户信息
      */
-    List<UserVO> userList;
+    UserVO createUser;
 
 }
