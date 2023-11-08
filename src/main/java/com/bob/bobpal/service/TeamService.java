@@ -2,6 +2,7 @@ package com.bob.bobpal.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.bob.bobpal.model.domain.Team;
+import com.bob.bobpal.model.domain.User;
 
 
 /**
@@ -10,5 +11,11 @@ import com.bob.bobpal.model.domain.Team;
 * @createDate 2023-11-07 17:30:24
 */
 public interface TeamService extends IService<Team> {
-
+    /**
+     * 创建队伍
+     * @param team
+     * @param loginUser
+     * @return
+     */
+    long addTeam(Team team, User loginUser);
 }
