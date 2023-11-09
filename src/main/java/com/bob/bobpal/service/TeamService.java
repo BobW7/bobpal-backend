@@ -27,7 +27,8 @@ public interface TeamService extends IService<Team> {
     /**
      * 搜索队伍
      * @param teamQuery
+     * @param isAdmin
      * @return
      */
-    List<TeamUserVO> listTeams(TeamQuery teamQuery) throws InvocationTargetException, IllegalAccessException;
+    List<TeamUserVO> listTeams(TeamQuery teamQuery,boolean isAdmin) throws InvocationTargetException, IllegalAccessException;
 }

@@ -120,7 +120,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
     }
 
     @Override
-    public List<TeamUserVO> listTeams(TeamQuery teamQuery) throws InvocationTargetException, IllegalAccessException {
+    public List<TeamUserVO> listTeams(TeamQuery teamQuery,boolean isAdmin) throws InvocationTargetException, IllegalAccessException {
         QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
         // 1. 组合查询条件
         if (teamQuery != null) {
@@ -128,6 +128,11 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             Long id = teamQuery.getId();
             if (id != null && id > 0) {
                 queryWrapper.eq("id", id);
+            }
+            String searchText = teamQuery.getSearchText();
+            if(StringUtils.isNotBlank(searchText)){
+                //模糊查询，队伍名或者描述有一个就能查出来
+                queryWrapper.and(qw -> qw.like("name",searchText).or().like("description",searchText));
             }
             String name = teamQuery.getName();
             if (StringUtils.isNotBlank(name)) {
@@ -147,13 +152,20 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             if (userId != null && userId > 0) {
                 queryWrapper.eq("userId", userId);
             }
-            Integer status = teamQuery.getStatus();
             //根据状态查询
-            if (status != null && status > -1) {
-                queryWrapper.eq("status", status);
+            Integer status = teamQuery.getStatus();
+            TeamStatusEnum statusEnum = TeamStatusEnum.getEnumByValue(status);
+            if(statusEnum == null){
+                statusEnum = TeamStatusEnum.PUBLIC;
             }
+            if(!isAdmin && !statusEnum.equals(TeamStatusEnum.PUBLIC)){
+                throw new BusinessException(ErrorCode.NO_AUTH);
+            }
+                queryWrapper.eq("status", statusEnum.getValue());
         }
-
+        // 不展示已过期的队伍
+        // expireTime is null or expireTime > now()
+        queryWrapper.and(qw -> qw.gt("expireTime", new Date()).or().isNull("expireTime"));
         //同步将teamQuery字段的值同步到一个team对象中去，因为queryWrapper只能接受实体类
         List<Team> teamList = this.list(queryWrapper);
         if (CollectionUtils.isEmpty(teamList)) {
