@@ -189,13 +189,14 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             }
             //关联查询
             User user = userService.getById(userId);
-            //脱敏用户信息
-            UserVO userVO = new UserVO();
-            BeanUtils.copyProperties(userVO, user);
-
             TeamUserVO teamUserVO = new TeamUserVO();
-            BeanUtils.copyProperties(teamQuery, team);
-            teamUserVO.setCreateUser(userVO);
+            BeanUtils.copyProperties(teamUserVO, team);
+            //脱敏用户信息
+            if(user != null){
+                UserVO userVO = new UserVO();
+                BeanUtils.copyProperties(userVO, user);
+                teamUserVO.setCreateUser(userVO);
+            }
             teamUserVOList.add(teamUserVO);
         }
         return teamUserVOList;
