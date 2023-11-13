@@ -10,11 +10,13 @@ import com.bob.bobpal.model.domain.User;
 import com.bob.bobpal.model.domain.UserTeam;
 import com.bob.bobpal.model.dto.TeamQuery;
 import com.bob.bobpal.model.enums.TeamStatusEnum;
+import com.bob.bobpal.model.request.TeamUpdateRequest;
 import com.bob.bobpal.model.vo.TeamUserVO;
 import com.bob.bobpal.model.vo.UserVO;
 import com.bob.bobpal.service.TeamService;
 import com.bob.bobpal.service.UserService;
 import com.bob.bobpal.service.UserTeamService;
+import jodd.bean.BeanUtil;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -200,6 +202,42 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             teamUserVOList.add(teamUserVO);
         }
         return teamUserVOList;
+    }
+
+    @Override
+    public boolean updateTeam(TeamUpdateRequest teamUpdateRequest, User loginUser) {
+        if(teamUpdateRequest == null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        Long id = teamUpdateRequest.getId();
+        if(id == null || id <= 0){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        //得到老数据
+        Team oldTeam = this.getById(id);
+        if(oldTeam == null){
+            throw new BusinessException(ErrorCode.NULL_ERROR,"找不到要修改的队伍！");
+        }
+        //只有管理员或者队伍的创建者可以修改队伍信息
+        if(oldTeam.getUserId() != loginUser.getId() && userService.isAdmin(loginUser)){
+            throw new BusinessException(ErrorCode.NO_AUTH);
+        }
+        TeamStatusEnum statusEnum = TeamStatusEnum.getEnumByValue(teamUpdateRequest.getStatus());
+        if(statusEnum.equals(TeamStatusEnum.SECRET)){
+            if(StringUtils.isNotBlank(teamUpdateRequest.getPassword())){
+                throw new BusinessException(ErrorCode.PARAMS_ERROR,"加密房间必须设置密码！");
+            }
+
+        }
+        //todo 如果新老字段一致，则不用查库进行更新
+        //更新
+        Team updateTeam = new Team();
+        try {
+            BeanUtils.copyProperties(updateTeam,teamUpdateRequest);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
+        return this.updateById(updateTeam);
     }
 }
 

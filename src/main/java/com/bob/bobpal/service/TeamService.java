@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.bob.bobpal.model.domain.Team;
 import com.bob.bobpal.model.domain.User;
 import com.bob.bobpal.model.dto.TeamQuery;
+import com.bob.bobpal.model.request.TeamUpdateRequest;
 import com.bob.bobpal.model.vo.TeamUserVO;
 
 import java.lang.reflect.InvocationTargetException;
@@ -31,4 +32,12 @@ public interface TeamService extends IService<Team> {
      * @return
      */
     List<TeamUserVO> listTeams(TeamQuery teamQuery,boolean isAdmin) throws InvocationTargetException, IllegalAccessException;
+
+
+    /**
+     *
+     * @param teamUpdateRequest
+     * @return
+     */
+    boolean updateTeam(TeamUpdateRequest teamUpdateRequest, User loginUser);
 }
