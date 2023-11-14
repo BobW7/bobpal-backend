@@ -5,6 +5,7 @@ import com.bob.bobpal.model.domain.Team;
 import com.bob.bobpal.model.domain.User;
 import com.bob.bobpal.model.dto.TeamQuery;
 import com.bob.bobpal.model.request.TeamJoinRequest;
+import com.bob.bobpal.model.request.TeamQuitRequest;
 import com.bob.bobpal.model.request.TeamUpdateRequest;
 import com.bob.bobpal.model.vo.TeamUserVO;
 
@@ -53,4 +54,12 @@ public interface TeamService extends IService<Team> {
      * @return
      */
     boolean joinTeam(TeamJoinRequest teamJoinRequest,User loginUser);
+
+    /**
+     * 退出队伍
+     * @param teamQuitRequest
+     * @param loginUser
+     * @return
+     */
+    boolean quitTeam(TeamQuitRequest teamQuitRequest, User loginUser);
 }

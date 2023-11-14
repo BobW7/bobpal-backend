@@ -11,6 +11,7 @@ import com.bob.bobpal.model.domain.User;
 import com.bob.bobpal.model.dto.TeamQuery;
 import com.bob.bobpal.model.request.TeamAddRequest;
 import com.bob.bobpal.model.request.TeamJoinRequest;
+import com.bob.bobpal.model.request.TeamQuitRequest;
 import com.bob.bobpal.model.request.TeamUpdateRequest;
 import com.bob.bobpal.model.vo.TeamUserVO;
 import com.bob.bobpal.service.TeamService;
@@ -25,7 +26,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 /**
- * 用户接口
+ * 队伍接口
  *
  * @author bob
  */
@@ -136,12 +137,21 @@ public class TeamController {
     }
 
     @PostMapping("/join")
-    public BaseResponse<Boolean> joinTeam(@RequestBody TeamJoinRequest teamJoinRequest,HttpServletRequest request) {
+    public BaseResponse<Boolean> joinTeam(@RequestBody TeamJoinRequest teamJoinRequest, HttpServletRequest request) {
         if (teamJoinRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         User loginUser = userService.getLoginUser(request);
-        boolean result = teamService.joinTeam(teamJoinRequest,loginUser);
+        boolean result = teamService.joinTeam(teamJoinRequest, loginUser);
+        return ResultUtils.success(result);
+    }
+    @PostMapping("/quit")
+    public BaseResponse<Boolean> quitTeam(@RequestBody TeamQuitRequest teamQuitRequest, HttpServletRequest request) {
+        if (teamQuitRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        boolean result = teamService.quitTeam(teamQuitRequest, loginUser);
         return ResultUtils.success(result);
     }
 }
