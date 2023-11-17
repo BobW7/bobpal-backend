@@ -8,6 +8,7 @@ import com.bob.bobpal.common.ResultUtils;
 import com.bob.bobpal.exception.BusinessException;
 import com.bob.bobpal.model.domain.Team;
 import com.bob.bobpal.model.domain.User;
+import com.bob.bobpal.model.domain.UserTeam;
 import com.bob.bobpal.model.dto.TeamQuery;
 import com.bob.bobpal.model.request.TeamAddRequest;
 import com.bob.bobpal.model.request.TeamJoinRequest;
@@ -16,6 +17,7 @@ import com.bob.bobpal.model.request.TeamUpdateRequest;
 import com.bob.bobpal.model.vo.TeamUserVO;
 import com.bob.bobpal.service.TeamService;
 import com.bob.bobpal.service.UserService;
+import com.bob.bobpal.service.UserTeamService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.BeanUtils;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +25,11 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 队伍接口
@@ -40,6 +46,8 @@ public class TeamController {
     private UserService userService;
     @Resource
     private TeamService teamService;
+    @Resource
+    private UserTeamService userTeamService;
 
     @PostMapping("/add")
     public BaseResponse<Long> addTeam(@RequestBody TeamAddRequest teamAddRequest, HttpServletRequest request) throws InvocationTargetException, IllegalAccessException {
@@ -98,7 +106,8 @@ public class TeamController {
 //    }
 
     @GetMapping("/list")
-    public BaseResponse<List<TeamUserVO>> listTeams(TeamQuery teamQuery, HttpServletRequest request) throws InvocationTargetException, IllegalAccessException {
+    public BaseResponse<List<TeamUserVO>> listTeams(TeamQuery teamQuery, HttpServletRequest request)
+            throws InvocationTargetException, IllegalAccessException {
         if (teamQuery == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -146,15 +155,61 @@ public class TeamController {
     }
 
     @PostMapping("/delete")
-    public BaseResponse<Boolean> deleteTeam(@RequestBody Long id,HttpServletRequest request) {
+    public BaseResponse<Boolean> deleteTeam(@RequestBody Long id, HttpServletRequest request) {
         if (id <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         User loginUser = userService.getLoginUser(request);
-        boolean result = teamService.deleteTeam(id,loginUser);
+        boolean result = teamService.deleteTeam(id, loginUser);
         if (!result) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "删除失败");
         }
         return ResultUtils.success(true);
+    }
+
+    /**
+     * 获取我创建的队伍
+     * @param teamQuery
+     * @param request
+     * @return
+     * @throws InvocationTargetException
+     * @throws IllegalAccessException
+     */
+    @GetMapping("/list/my/create")
+    public BaseResponse<List<TeamUserVO>> listMyCreateTeams(TeamQuery teamQuery, HttpServletRequest request)
+            throws InvocationTargetException, IllegalAccessException {
+        if (teamQuery == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        teamQuery.setUserId(loginUser.getId());
+        List<TeamUserVO> teamList = teamService.listTeams(teamQuery,true);
+        return ResultUtils.success(teamList);
+    }
+
+    /**
+     * 获取我加入的队伍
+     * @param teamQuery
+     * @param request
+     * @return
+     * @throws InvocationTargetException
+     * @throws IllegalAccessException
+     */
+    @GetMapping("/list/my/joined")
+    public BaseResponse<List<TeamUserVO>> listMyJoinedTeams(TeamQuery teamQuery, HttpServletRequest request)
+            throws InvocationTargetException, IllegalAccessException {
+        if (teamQuery == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        QueryWrapper<UserTeam> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("userId",loginUser.getId());
+        List<UserTeam> userTeamList = userTeamService.list(queryWrapper);
+        //取出不重复的队伍ID
+        Map<Long, List<UserTeam>> listMap = userTeamList.stream().collect(Collectors.groupingBy(UserTeam::getTeamId));
+        List<Long> idList = new ArrayList<>(listMap.keySet());
+        teamQuery.setIdList(idList);
+        List<TeamUserVO> teamList = teamService.listTeams(teamQuery, true);
+        return ResultUtils.success(teamList);
     }
 }

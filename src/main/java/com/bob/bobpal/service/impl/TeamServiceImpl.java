@@ -132,6 +132,10 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             if (id != null && id > 0) {
                 queryWrapper.eq("id", id);
             }
+            List<Long> idList = teamQuery.getIdList();
+            if(CollectionUtils.isNotEmpty(idList)){
+                queryWrapper.in("id",idList);
+            }
             String searchText = teamQuery.getSearchText();
             if (StringUtils.isNotBlank(searchText)) {
                 //模糊查询，队伍名或者描述有一个就能查出来
