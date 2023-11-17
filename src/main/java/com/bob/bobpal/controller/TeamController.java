@@ -3,6 +3,7 @@ package com.bob.bobpal.controller;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bob.bobpal.common.BaseResponse;
+import com.bob.bobpal.common.DeleteRequest;
 import com.bob.bobpal.common.ErrorCode;
 import com.bob.bobpal.common.ResultUtils;
 import com.bob.bobpal.exception.BusinessException;
@@ -155,10 +156,11 @@ public class TeamController {
     }
 
     @PostMapping("/delete")
-    public BaseResponse<Boolean> deleteTeam(@RequestBody Long id, HttpServletRequest request) {
-        if (id <= 0) {
+    public BaseResponse<Boolean> deleteTeam(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
+        if (deleteRequest == null || deleteRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
+        Long id = deleteRequest.getId();
         User loginUser = userService.getLoginUser(request);
         boolean result = teamService.deleteTeam(id, loginUser);
         if (!result) {
@@ -206,7 +208,15 @@ public class TeamController {
         queryWrapper.eq("userId",loginUser.getId());
         List<UserTeam> userTeamList = userTeamService.list(queryWrapper);
         //取出不重复的队伍ID
+        // teamId userId
+        // 1,2
+        // 1,3
+        // 2,3
+        // result
+        // 1 => 2、3
+        // 2 => 3
         Map<Long, List<UserTeam>> listMap = userTeamList.stream().collect(Collectors.groupingBy(UserTeam::getTeamId));
+        //得到加入的team的id列表
         List<Long> idList = new ArrayList<>(listMap.keySet());
         teamQuery.setIdList(idList);
         List<TeamUserVO> teamList = teamService.listTeams(teamQuery, true);
