@@ -2,14 +2,14 @@ package com.bob.bobpal.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.bob.bobpal.model.request.UserLoginRequest;
-import com.bob.bobpal.service.UserService;
 import com.bob.bobpal.common.BaseResponse;
 import com.bob.bobpal.common.ErrorCode;
 import com.bob.bobpal.common.ResultUtils;
 import com.bob.bobpal.exception.BusinessException;
 import com.bob.bobpal.model.domain.User;
+import com.bob.bobpal.model.request.UserLoginRequest;
 import com.bob.bobpal.model.request.UserRegisterRequest;
+import com.bob.bobpal.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -168,5 +168,20 @@ public class UserController {
         return ResultUtils.success(userPage);
     }
 
+    /**
+     * 获取最匹配的用户
+     *
+     * @param num
+     * @param request
+     * @return
+     */
+    @GetMapping("/match")
+    public BaseResponse<List<User>> matchUsers(long num, HttpServletRequest request) {
+        if (num <= 0 || num > 20) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        return ResultUtils.success(userService.matchUsers(num, loginUser));
+    }
 
 }

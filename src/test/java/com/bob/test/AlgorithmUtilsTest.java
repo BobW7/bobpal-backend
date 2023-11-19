@@ -15,4 +15,19 @@ public class AlgorithmUtilsTest {
         System.out.println(score1);
         System.out.println(score2);
     }
+    public int getShuWeiHe(int n){
+        int res = 0;
+        while(n / 10 != 0){
+            res += n % 10;
+            n = n / 10;
+        }
+        if(n < 10){
+            res += n;
+        }
+        return res;
+    }
+    @Test
+    public void test1(){
+        System.out.println(getShuWeiHe(123456));
+    }
 }
