@@ -113,7 +113,30 @@ public class TeamController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         boolean isAdmin = userService.isAdmin(request);
+        // 查询队伍列表
         List<TeamUserVO> teamList = teamService.listTeams(teamQuery, isAdmin);
+        final List<Long> teamIdList = teamList.stream().map(TeamUserVO::getId).collect(Collectors.toList());
+        // 判断当前用户是否已加入队伍
+        QueryWrapper<UserTeam> userTeamQueryWrapper = new QueryWrapper<>();
+        try{
+            User loginUser = userService.getLoginUser(request);
+            userTeamQueryWrapper.eq("userId",loginUser.getId());
+            userTeamQueryWrapper.in("teamId",teamIdList);
+            List<UserTeam> userTeamList = userTeamService.list(userTeamQueryWrapper);
+            //已加入队伍的id集合
+            Set<Long> hasJoinTeamIdSet = userTeamList.stream().map(UserTeam::getTeamId).collect(Collectors.toSet());
+            teamList.forEach(team ->{
+                boolean hasJoin = hasJoinTeamIdSet.contains(team.getId());
+                team.setHasJoin(hasJoin);
+            });
+        }catch (Exception e){}
+        // 查询已加入队伍的人数
+        QueryWrapper<UserTeam> userTeamJoinQueryWrapper = new QueryWrapper<>();
+        userTeamJoinQueryWrapper.in("teamId",teamIdList);
+        List<UserTeam> userTeamList = userTeamService.list(userTeamJoinQueryWrapper);
+        // 队伍 id => 加入这个队伍的用户列表
+        Map<Long, List<UserTeam>> teamIdUserTeamList = userTeamList.stream().collect(Collectors.groupingBy(UserTeam::getTeamId));
+        teamList.forEach(team -> team.setHasJoinNum(teamIdUserTeamList.getOrDefault(team.getUserId(),new ArrayList<>()).size()));
         return ResultUtils.success(teamList);
     }
 
