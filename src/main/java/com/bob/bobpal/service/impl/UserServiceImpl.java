@@ -89,6 +89,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         // 3. 插入数据
         User user = new User();
         user.setUserAccount(userAccount);
+        user.setUsername(userAccount);
+        user.setTags("[\"java\"]");
         user.setUserPassword(encryptPassword);
         user.setPlanetCode(planetCode);
         boolean saveResult = this.save(user);
